@@ -23,7 +23,7 @@ for i in Nvals:
     variance = np.var(pnl)
     print("(",i, mean, np.sqrt(variance),")")
 
-x = np.arange(0,1000)
+x = np.arange(1,1001)
 y = np.cumsum(strategy(120,-80,1000,0.45)[0])
 pnlExp = strategy(120,-80,1000,0.45)[1]
 
@@ -31,6 +31,7 @@ pnlExp = strategy(120,-80,1000,0.45)[1]
 plt.plot(x,y, color = "blue",label = "Simulated P&L")
 plt.plot(x,pnlExp*x,color = "red",label = "Theoretical P&L")
 plt.xlabel("Trade number")
+plt.xlim(1,1100)
 plt.ylabel("Cumulative Profit/Loss")
 plt.title("Cumulative Profit/Loss across 1000 sampled trades of the strategy")
 plt.legend()
