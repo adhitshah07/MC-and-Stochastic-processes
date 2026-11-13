@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-#Analysis of a simple profit/loss strategy
+##Analysis of a simple profit/loss strategy
 print("""A strategy returns a profit of £120 with probability 0.45, 
 and a loss of £80 with probability 0.55""")
 
-#Sampling N applications of the strategy
+##Sampling N applications of the strategy
 random = np.random.default_rng()
 
 def strategy(a,b,n,p):
@@ -14,7 +14,7 @@ def strategy(a,b,n,p):
     Expectation = a*p + b*(1-p)
     return PandL, Expectation
 st80120 = strategy(120,-80,1000,0.45)
-#Testing the strategy over N trades
+##Testing the strategy over N trades
 Nvals = [10,100,1000,10000,100000]
 print("(No. trades, mean, standard deviation)")
 for i in Nvals:
@@ -23,7 +23,7 @@ for i in Nvals:
     variance = np.var(pnl)
     print("(",i, mean, np.sqrt(variance),")")
 
-#Finding and plotting a cumulative sum of 1000 trade outcomes
+##Finding and plotting a cumulative sum of 1000 trade outcomes
 x = np.arange(1,1001)
 y = np.cumsum(st80120[0])
 pnlExp = st80120[1]
@@ -38,15 +38,23 @@ plt.title("Cumulative Profit/Loss across 1000 sampled trades of the strategy")
 plt.legend()
 plt.show()
 
-#Simulating multiple possible trading paths
-MultiUnif = np.random.uniform(0,1,(100,1000))
+##Simulating multiple possible trading paths
+MultiUnif = np.random.uniform(0,1,(10000,1000))
 MultiPnL = np.where(MultiUnif<0.45, 120, -80)
 EndPnL = np.sum(MultiPnL, axis = 1)
-print(EndPnL <0)
 
-#Analysis of the distrubition of final outcomes of the trading paths
+##Analysis of the distrubition of final outcomes of the trading paths
+print("Consider a path of 1000 trades simulated 10 000 times")
 MeanEnd = np.mean(EndPnL)
 VarEnd = np.var(EndPnL)
 StdEnd = np.std(EndPnL)
-LossEnd = len(EndPnL<0)
-print(MeanEnd, VarEnd, StdEnd, LossEnd)
+LossEnd = np.sum(EndPnL<0)/100
+print("Sample mean outcome:", MeanEnd)
+print("Sample standard deviation of outcomes:", StdEnd)
+print("Number of paths that ended in a loss:", 100*LossEnd)
+print("Estimated Probability of ending in a loss:", LossEnd)
+
+##Histogram Plot and percentile analysis
+plt.hist(EndPnL, bins = 50)
+plt.title("Distribution of path outcomes")
+plt.show()
