@@ -53,8 +53,14 @@ print("Sample mean outcome:", MeanEnd)
 print("Sample standard deviation of outcomes:", StdEnd)
 print("Number of paths that ended in a loss:", 100*LossEnd)
 print("Estimated Probability of ending in a loss:", LossEnd)
-
+Perc5 = np.percentile(EndPnL, 5)
+Perc95 = np.percentile(EndPnL, 95)
+Perc50 = np.percentile(EndPnL, 50)
 ##Histogram Plot and percentile analysis
 plt.hist(EndPnL, bins = 50)
 plt.title("Distribution of path outcomes")
+plt.axvline
 plt.show()
+print("5th, 50th and 95th percentiles:", Perc5, Perc50, Perc95)
+
+##Using a real life sample of S%P500 data
