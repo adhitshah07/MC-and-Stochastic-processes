@@ -48,7 +48,7 @@ print("Consider a path of 1000 trades simulated 10 000 times")
 MeanEnd = np.mean(EndPnL)
 VarEnd = np.var(EndPnL)
 StdEnd = np.std(EndPnL)
-LossEnd = np.sum(EndPnL<0)/100
+LossEnd = np.sum(EndPnL<0)/10000
 print("Sample mean outcome:", MeanEnd)
 print("Sample standard deviation of outcomes:", StdEnd)
 print("Number of paths that ended in a loss:", 100*LossEnd)
@@ -63,4 +63,20 @@ plt.axvline
 plt.show()
 print("5th, 50th and 95th percentiles:", Perc5, Perc50, Perc95)
 
-##Using a real life sample of S%P500 data
+##Getting sample S&P 500 data and rebuilding its path
+
+levels = np.genfromtxt("SP500.csv",delimiter=",",skip_header=1,usecols=1,)
+levels = levels[~np.isnan(levels)]
+
+returns = (levels[1:]/levels[:-1] -1)
+spmean  = np.mean(returns)
+spsd = np.std(returns, ddof = 1)
+levels_rebuilt = levels[0]*np.cumprod(1+returns)
+#print(np.allclose(levels_rebuilt, levels[1:]))     #(sanity check)
+
+##Sampling S%P 500 data to predict multiple paths
+samplereturns = random.choice(returns, size = (5,10), replace = True) 
+simulatedlevels = levels[-1]*np.cumprod(1 + samplereturns, axis = 1)
+
+finallevels = simulatedlevels[:,-1]
+print(finallevels/levels[-1] -1)
