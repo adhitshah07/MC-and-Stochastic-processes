@@ -4,9 +4,15 @@ import matplotlib.pyplot as plt
 ##Analysis of a simple profit/loss strategy
 print("""A strategy returns a profit of £120 with probability 0.45, 
 and a loss of £80 with probability 0.55""")
+a1 = 120
+b1 = -80
+p1 = 0.45
 
+Exp = a1*p1 + b1*(1-p1)
+Var = ((a1)^2)*p1 + ((b1)^2)*(1-p1)
+Std = np.sqrt(Var)
 ##Sampling N applications of the strategy
-random = np.random.default_rng(42)
+random = np.random.default_rng(22718)
 
 def strategy(a,b,n,p):
     unifarray = random.uniform(0,1,n)
@@ -18,7 +24,7 @@ st80120 = strategy(120,-80,1000,0.45)
 Nvals = [10,100,1000,10000,100000]
 print("(No. trades, mean, standard deviation)")
 for i in Nvals:
-    pnl = strategy(120,-80,i,0.45)[0]
+    pnl = strategy(a1,b1,i,p1)[0]
     mean = np.mean(pnl)
     variance = np.var(pnl)
     print("(",i, mean, np.sqrt(variance),")")
@@ -30,19 +36,22 @@ pnlExp = st80120[1]
 
 
 plt.plot(x,y, color = "blue",label = "Simulated P&L")
-plt.plot(x,pnlExp*x,color = "red",label = "Theoretical P&L")
+plt.plot(x,pnlExp*x,color = "red",label = "Expected cumulative P&L")
 plt.xlabel("Trade number")
 plt.xlim(1,1100)
 plt.ylabel("Cumulative Profit/Loss")
 plt.title("Cumulative Profit/Loss across 1000 sampled trades of the strategy")
 plt.legend()
+plt.tight_layout()
 plt.show()
 
 ##Simulating multiple possible trading paths
 PSize = 1000
 PNo = 10000
-MultiUnif = np.random.uniform(0,1,(PNo,PSize))
-MultiPnL = np.where(MultiUnif<0.45, 120, -80)
+MExp = Exp*PSize
+MVar = Var*PSize
+MultiUnif = random.uniform(0,1,(PNo,PSize))
+MultiPnL = np.where(MultiUnif<p1, a1, b1)
 EndPnL = np.sum(MultiPnL, axis = 1)
 
 ##Analysis of the distrubition of final outcomes of the trading paths
@@ -53,32 +62,55 @@ Theoretical calculations:
 
 Expected value for n trades = 10n = 10*1000 = 10000
 
-Variance for n trades = 9900n = 9900 * 1000 = 990000
+Variance for n trades = 9900n = 9900 * 1000 = 9900000
 
 Standard Deviation = (9900n)^0.5 = (9900000)^0.5 = approx. 3146.43
-
---------------------------------------------------
 """)
 MeanEnd = np.mean(EndPnL)
 VarEnd = np.var(EndPnL)
 StdEnd = np.std(EndPnL)
 LossEnd = np.mean(EndPnL<0)
-print("Sample mean outcome:", MeanEnd)
-print("Sample standard deviation of outcomes:", StdEnd)
-print("Number of paths that ended in a loss:", LossEnd)
-print("Estimated Probability of ending in a loss:", LossEnd)
+print(f"""
+--------------------------------------------------
+Analysis of n = {PNo} paths:
+
+Sample mean outcome: £{MeanEnd:,.2f}
+Sample standard deviation of outcomes: £{StdEnd:,.2f}
+Estimated probability of ending in a loss: {LossEnd:.2%}
+
+Ratio of sample mean and expectation: {MeanEnd/10000:,.4f}
+Simulated SD/TheoreticalSD: {StdEnd/np.sqrt(MVar*PSize):,.4f}
+""")
+#print("Sample mean outcome:", MeanEnd)
+#print("Sample standard deviation of outcomes:", StdEnd)
+#print("Probability of paths ending in a loss:", LossEnd)
+#print("Estimated Probability of ending in a loss:", LossEnd)
+#print("Sample mean/Expectation =", MeanEnd/10000)
+#print("Sample SD/Theoretical SD =", StdEnd / np.sqrt(9900000))
 Perc5 = np.percentile(EndPnL, 5)
 Perc95 = np.percentile(EndPnL, 95)
 Perc50 = np.percentile(EndPnL, 50)
+
+
 ##Histogram Plot and percentile analysis
 plt.hist(EndPnL, bins = 50)
 plt.title("Distribution of path outcomes")
+plt.xlabel("Final P&L(£)")
+plt.ylabel("No. simulated paths")
 plt.axvline(Perc5, color = "red", label = "5th percentile")
 plt.axvline(Perc50, color = "blue", label = "Median")
 plt.axvline(Perc95, color = "green", label = "95th percentile")
 plt.legend()
+plt.tight_layout()
 plt.show()
-print("5th, 50th and 95th percentiles:", Perc5, Perc50, Perc95)
+print(f"""
+Histogram analysis:
+
+5th percentile: £{Perc5:,.2f}
+50th percentile: £{Perc50:,.2f}
+95th percentile: £{Perc95:,.2f}
+--------------------------------------------------
+""")
 
 ##Getting sample S&P 500 data and rebuilding its path
 
@@ -104,7 +136,33 @@ totalreturn = simulatedlevels[:,-1]/levels[-1] - 1
 sp5 = np.percentile(totalreturn, 5)
 sp50 = np.percentile(totalreturn, 50)
 sp95 = np.percentile(totalreturn, 95)
-print(sp5, sp50, sp95)
+print(f"""
+S&P 500 Sampling summary:
+
+No. paths sampled: {SPno}
+Size of sampled paths: {SPSize}
+
+Probability of making a loss: {p_losslevels:,.2%}
+5th percentile of return: {sp5:,.2%}
+50th percentile: {sp50:,.2%}
+95th percentile: {sp95:,.2%}
+
+-------------------------------------
+""")
 
 #Plotting a random selection of five S&P paths
 
+
+samplepaths = random.choice(simulatedlevels.shape[0], size=20, replace=False)
+
+x_sp = np.arange(1,SPSize + 1)
+for i in range(20):
+    y_sp = simulatedlevels[samplepaths[i],:]
+    plt.plot(x_sp,y_sp)
+plt.axhline(levels[-1], color="black", linestyle="--", label = "Starting level")
+plt.xlabel("Trading day")
+plt.ylabel("Index Level")
+plt.title("20 simulated S&P 500 paths over 252 trading days")
+plt.legend()
+plt.tight_layout()
+plt.show()
