@@ -9,7 +9,7 @@ b1 = -80
 p1 = 0.45
 
 Exp = a1*p1 + b1*(1-p1)
-Var = ((a1)^2)*p1 + ((b1)^2)*(1-p1)
+Var = ((a1)**2)*p1 + ((b1)**2)*(1-p1) - Exp**2
 Std = np.sqrt(Var)
 ##Sampling N applications of the strategy
 random = np.random.default_rng(22718)
@@ -56,15 +56,15 @@ EndPnL = np.sum(MultiPnL, axis = 1)
 
 ##Analysis of the distrubition of final outcomes of the trading paths
 print("Consider a path of 1000 trades simulated 10 000 times")
-print("""
+print(f"""
 --------------------------------------------------
 Theoretical calculations:
 
-Expected value for n trades = 10n = 10*1000 = 10000
+Expected value for n trades = {Exp}n = {Exp}*{PSize} = {MExp}
 
-Variance for n trades = 9900n = 9900 * 1000 = 9900000
+Variance for n trades = {Var}n = {Var} * {PSize} = {MVar}
 
-Standard Deviation = (9900n)^0.5 = (9900000)^0.5 = approx. 3146.43
+Standard Deviation = ({Var}n)^0.5 = ({MVar})^0.5 = approx. {np.sqrt(MVar):,.2f}
 """)
 MeanEnd = np.mean(EndPnL)
 VarEnd = np.var(EndPnL)
@@ -78,15 +78,9 @@ Sample mean outcome: £{MeanEnd:,.2f}
 Sample standard deviation of outcomes: £{StdEnd:,.2f}
 Estimated probability of ending in a loss: {LossEnd:.2%}
 
-Ratio of sample mean and expectation: {MeanEnd/10000:,.4f}
-Simulated SD/TheoreticalSD: {StdEnd/np.sqrt(MVar*PSize):,.4f}
+Ratio of sample mean and expectation: {MeanEnd/MExp:,.4f}
+Simulated SD/TheoreticalSD: {StdEnd/np.sqrt(MVar):,.4f}
 """)
-#print("Sample mean outcome:", MeanEnd)
-#print("Sample standard deviation of outcomes:", StdEnd)
-#print("Probability of paths ending in a loss:", LossEnd)
-#print("Estimated Probability of ending in a loss:", LossEnd)
-#print("Sample mean/Expectation =", MeanEnd/10000)
-#print("Sample SD/Theoretical SD =", StdEnd / np.sqrt(9900000))
 Perc5 = np.percentile(EndPnL, 5)
 Perc95 = np.percentile(EndPnL, 95)
 Perc50 = np.percentile(EndPnL, 50)
@@ -123,8 +117,6 @@ spsd = np.std(returns, ddof = 1)
 levels_rebuilt = levels[0]*np.cumprod(1+returns)
 
 
-#print(np.allclose(levels_rebuilt, levels[1:]))     #(sanity check)
-
 ##Sampling S%P 500 data to predict multiple paths
 SPno = 10000
 SPSize = 252
@@ -140,7 +132,7 @@ print(f"""
 S&P 500 Sampling summary:
 
 No. paths sampled: {SPno}
-Size of sampled paths: {SPSize}
+Horizon: {SPSize}
 
 Probability of making a loss: {p_losslevels:,.2%}
 5th percentile of return: {sp5:,.2%}
@@ -150,7 +142,7 @@ Probability of making a loss: {p_losslevels:,.2%}
 -------------------------------------
 """)
 
-#Plotting a random selection of five S&P paths
+#Plotting a random selection of 20 S&P paths
 
 
 samplepaths = random.choice(simulatedlevels.shape[0], size=20, replace=False)
